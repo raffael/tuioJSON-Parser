@@ -1,0 +1,62 @@
+<!doctype html public "✰">
+<head>
+	<meta charset=utf-8>
+	<meta http-equiv=X-UA-Compatible content="IE=Edge;chrome=1">
+	
+	<title  dir=ltr>HTML5 Base</title>
+	<meta name=viewport content="width=device-width, initial-scale=1.0">  
+
+	<script type="text/javascript" src="http://raffael.local/jquery.js"></script>
+	
+	<script type="text/javascript" src="../trash/jWebSocket.js"></script>
+	<script type="text/javascript" src="../trash/jwsStreamingPlugIn.js"></script>
+	
+	<script type="text/javascript" src="../lib/twWebSocket.js"></script>
+	
+	<script type="text/javascript" src="../lib/tuioJSONParser.js"></script>
+	
+	<script type="text/javascript" src="http://raffael.local/enableMultitouchOverlay.js"></script>
+	
+	<script type="text/javascript">
+		// initialize a Parser object
+		var parser	= new tuioJSONParser({
+		});
+
+		// initialize a WebSocket Object
+		socket = new WebSocket('ws://127.0.0.1:8787/jWebSocket/jWebSocket');
+		
+		// define Callback handler for opOpen event
+		socket.onopen = function(){
+			var registerMessage = '{"ns":"de.dfki.touchandwrite.streaming","type":"register","stream":"touchandwriteevents"}';
+			socket.send(registerMessage);
+		}
+		
+		// define Callback handler for onMessage event
+		socket.onmessage = function(msg){
+			// extract JSON data from message
+			var data = JSON.parse(msg.data);
+			// post Timestamp
+			if (window.location.hash.indexOf('logtimestamp')!=-1) console.log("receive@"+new Date());
+			// and pass it to the TuioJSON parser
+			parser.parse(data);
+		}
+		
+		function log(event) {
+		}
+		
+		function prevent(event) {
+			event.preventDefault();
+			return false;
+		}
+	</script>
+</head>
+<body ontouchmove="prevent(event);" onscroll="prevent(event);">
+	<div id="multitouchReceptor"
+	style="width:99%; height:  99%;position:  absolute; top: 0;left: 0;right: 0;bottom: 0;"
+	ontouchstart="this.style.backgroundColor='#eee';"
+	ontouchmove="log(event);"
+	ontouchend="this.style.backgroundColor='white';"
+	onclick=""></div>
+	
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!doctype html public "✰">
+<!--[if lt IE 7 ]><html lang=en-us class="no-js ie6"><![endif]-->
+<!--[if IE 7 ]><html lang=en-us class="no-js ie7"><![endif]-->
+<!--[if IE 8 ]><html lang=en-us class="no-js ie8"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--> <html lang=en-us class=no-js> <!--<![endif]-->
+<head>
+	<meta charset=utf-8>
+	<meta http-equiv=X-UA-Compatible content="IE=Edge;chrome=1">
+	
+	<title  dir=ltr>HTML5 Base</title>
+	<meta name=viewport content="width=device-width, initial-scale=1.0">  
+
+	<link rel="stylesheet" href="multitouchOverlay.css" type="text/css" media="screen" />
+
+	<script type="text/javascript" src="http://localhost/jquery.js"></script>
+	
+	<script type="text/javascript" src="lib/jWebSocket.js"></script>
+	<script type="text/javascript" src="lib/jwsStreamingPlugIn.js"></script>
+	
+	<script type="text/javascript" src="lib/twWebSocket.js"></script>
+	
+	<script type="text/javascript" src="lib/tuioJSONParser.js"></script>
+	
+	<script type="text/javascript" src="multitouchOverlay.js"></script>
+	
+	<script type="text/javascript">
+		
+		// initialize a Parser object
+		var parser	= new tuioJSONParser({
+			logAll: false
+		});
+
+		useJWebSockets = (window.location.hash.indexOf('jwebsocket')!=-1);
+		if (useJWebSockets) {
+			new twWebSocket({
+				url: 'ws://127.0.0.1:8787/jWebSocket/jWebSocket',
+				username: 'touchandwrite',
+				password: 'enablestreaming',
+				onMessage: function(msg){
+					var msg = JSON.parse(msg.data);
+					parser.parseMessage(msg);
+				}
+			});
+		} else {
+		
+			// initialize a WebSocket Object
+			socket = new WebSocket('ws://127.0.0.1:8787/jWebSocket/jWebSocket');
+			
+			// define Callback handler for opOpen event
+			socket.onopen = function(){
+				var msg1 = '{"ns":"org.jwebsocket.plugins.system","type":"login","username":"touchandwrite","password":"enablestreaming","encoding":null,"pool":null,"utid":1}',
+					msg2 =  '{"ns":"org.jwebsocket.plugins.system","type":"header","clientType":"browser","clientName":"Safari","clientVersion":"5.1.2.534.52.7","clientInfo":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/534.52.7 (KHTML, like Gecko) Version/5.1.2 Safari/534.52.7","jwsType":"javascript","jwsVersion":"1.0b1 (10902)","jwsInfo":"native","utid":2}',
+					msg3 = '{"ns":"de.dfki.touchandwrite.streaming","type":"register","stream":"touchandwriteevents","utid":3}';
+				setTimeout(function(){socket.send(msg1);},200);
+				setTimeout(function(){socket.send(msg2);},400);
+				setTimeout(function(){socket.send(msg3);},600);
+			}
+			
+			// define Callback handler for onMessage event
+			socket.onmessage = function(msg){
+				// extract JSON data from message
+				var data = JSON.parse(msg.data);
+				// post Timestamp
+				if (window.location.hash.indexOf('logtimestamp')!=-1) console.log("receive@"+new Date());
+				// and pass it to the TuioJSON parser
+				parser.parseMessage(data);
+			}
+			
+		}
+			
+	</script>
+</head>
+<body>
+	<div id="app" style="width:99%; height:  99%;position:  absolute; top: 0;left: 0;right: 0;bottom: 0;"></div>
+	
+</body>
+</html>
