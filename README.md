@@ -56,4 +56,9 @@ The parser only needs a few options. You can pass an options object to the parse
 		fixTWRemoval: true
 	}
 
-var parser	= new tuioJSONParser(options);
+	var parser	= new tuioJSONParser(options);
+	
+## T&W Fixor
+
+The Touch&Write Server automatically sends remove-start sequences while dragging with the fingers for a longer period of time.
+In order to fix that and to receive continuous dragging paths, the *TWFixor.js* has been written to pipe & filter the tuioJSON messages to the actual tuioJSON Parser.
