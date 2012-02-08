@@ -8,10 +8,7 @@
 
 	<script type="text/javascript" src="http://raffael.local/jquery.js"></script>
 	
-	<script type="text/javascript" src="../trash/jWebSocket.js"></script>
-	<script type="text/javascript" src="../trash/jwsStreamingPlugIn.js"></script>
-	
-	<script type="text/javascript" src="../lib/twWebSocket.js"></script>
+	<script type="text/javascript" src="../TWFixor.js"></script>
 	
 	<script type="text/javascript" src="../lib/tuioJSONParser.js"></script>
 	
@@ -19,7 +16,11 @@
 	
 	<script type="text/javascript">
 		// initialize a Parser object
+
 		var parser	= new tuioJSONParser({
+		});
+		var fixor	= new TWFixor({
+			tuioJSONParser:	parser
 		});
 
 		// initialize a WebSocket Object
@@ -38,7 +39,7 @@
 			// post Timestamp
 			if (window.location.hash.indexOf('logtimestamp')!=-1) console.log("receive@"+new Date());
 			// and pass it to the TuioJSON parser
-			parser.parse(data);
+			fixor.fix(data);
 		}
 		
 		function log(event) {
