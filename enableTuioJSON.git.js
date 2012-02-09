@@ -17,6 +17,7 @@ setTimeout(function(){
 		
 		// define Callback handler for onMessage event
 		socket.onmessage = function(msg){
+			console.log("tuioJSON is ready");
 			// extract JSON data from message
 			var data = JSON.parse(msg.data);
 			// post Timestamp
@@ -25,4 +26,4 @@ setTimeout(function(){
 			parser.parse(data);
 		}
 		
-}, 1000);
+}, 500);
