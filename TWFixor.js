@@ -7,13 +7,34 @@ function TWFixor(options) {
 		verboseMode: false,
 		reanimationTimeOut: 20,
 		mergingTimeout: 20,
-		mergeGestures: true,
-		tuioJSONParser: null
+		mergeGestures: false,
+		tuioJSONParser: undefined
 	},options);
 	
-	if (options.tuioJSONParser==null) throw "No tuioJSONParser object found";
+	if (!options.tuioJSONParser) throw "No tuioJSONParser object found";
 	
 	var tuioJSONParser	= options.tuioJSONParser;
+	
+	/**
+	 * @public 
+	 * fix()
+	 * Public method provided by this library to fix T&W messages
+	 * @param	msg		The decoded JSON message
+	 * @return	-
+	 */
+	this.fix = function(msg) {
+		switch(msg.type) {
+			case 'touch':
+				fixTouchMessage(msg);
+				break;
+			case 'gesture':
+				bufferGestureMessages(msg);
+				break;
+			default:
+				tuioJSONParser.parse(msg);
+		}
+	}
+	
 	
 	/**
 	 * lastStateForId
@@ -48,7 +69,6 @@ function TWFixor(options) {
 						tuioJSONParser.parse(message);
 					}, options.reanimationTimeOut);
 				})(message);
-				//Touches[message.id].$markedForRemoval = true;
 				
 				break;
 		}
@@ -99,7 +119,6 @@ function TWFixor(options) {
 		}
 		
 		lastGestureState[message.gestureType]	= message.state;
-		
 	}
 	
 	var bufferedMessage;
@@ -120,7 +139,10 @@ function TWFixor(options) {
 	 * for gestures(!)
 	 */
 	function fixGestureMessage(message) {
-		// translate radians into degree
+		console.log("parse this: ",message);
+		/**
+		 * First, translate relative radians to absolute degrees in 'rotate' messages
+		 */
 		if (message.gestureType=='rotate') {
 			switch(message.state) {
 				case 'start':
@@ -138,7 +160,9 @@ function TWFixor(options) {
 			}
 		}
 		
-		// calculate absolute scale factors from relative ones		
+		/**
+		 * Then, translate relative scale factors to absolute ones in 'scale' messages
+		 */
 		if (message.gestureType=='scale') {
 			switch(message.state) {
 				case 'start':
@@ -153,7 +177,7 @@ function TWFixor(options) {
 		}
 		
 		/**
-		 * if set to TRUE, scale and rotate gestures will be merged together to one gesture as the W3C proposes.
+		 * If set to TRUE, scale and rotate gestures will be merged together to one gesture as the W3C proposes.
 		 * Therefore, as soon as both a scale and a rotate gesture have started (that is, a 'start' state came in for both),
 		 * a new tuioJSON conform message will be built that contains the values scale and rotate in it.
 		 * The original gestureType=='scale' & 'rotate' messages will be dropped (!) and not delivered to the parser (TODO: think about that!).
@@ -233,37 +257,63 @@ function TWFixor(options) {
 			}
 			
 		} else {
-			tuioJSONParser.parse(message);	
+			var isRotate		= (message.gestureType=='rotate'),
+				isStart			= (message.state=='start'),
+				isChange		= (message.state=='change'),
+				isEnd			= (message.end=='end');
+
+			/**
+			 * rotatestart messages do not contain x/y information.
+			 * For rotate messages, the rotatestart message needs to be buffered until a
+			 * rotatechange is coming in. Then, the x/y position of this change message will
+			 * be injected into the buffered one. The buffered one will then be fired before
+			 * firing the change event.
+			 */
+			if (isRotate) {
+				message.touches	= [{x: message.pivotX, y: message.pivotY},{x: message.pivotX, y: message.pivotY}];
+				
+				if (isStart) {
+					bufferedMessage	= message;
+					console.log("start happened, buffering message: ",bufferedMessage);
+					message			= null;
+				} else if (isChange) {
+					if (bufferedMessage) {
+						bufferedMessage.x	= message.x;
+						bufferedMessage.y	= message.y;
+						tuioJSONParser.parse(bufferedMessage);
+						console.log("buffered fired as "+bufferedMessage.state);
+					}
+					bufferedMessage	= null;
+				} else if (isEnd) {
+					bufferedMessage	= null;
+				}
+			}
+			
+			if (message) tuioJSONParser.parse(message);	
 		}
 		
-		// used to build up a message up from both a scale and a rotate message		
+		/**
+		 * used to build up a message up from both a scale and a rotate message
+		 */
 		function buildMessageFromLastGestureMessages(state) {
 			var message = {
-				type:	'gesture',
-				gestureType: 'mixed',
-				state:	state,
-				scale:	lastScaleGestureMessage.scale,
-				rotation:lastRotateGestureMessage.rotation,
-				x:		lastRotateGestureMessage.pivotX,
-				y:		lastRotateGestureMessage.pivotY
+				type:		'gesture',
+				gestureType:'gesture',
+				state:		state,
+				scale:		lastScaleGestureMessage.scale,
+				rotation:	lastRotateGestureMessage.rotation,
+				touches:	[{x: message.pivotX, y: message.pivotY},{x: message.pivotX, y: message.pivotY}],
+				pivotX:		lastRotateGestureMessage.pivotX,
+				pivotY:		lastRotateGestureMessage.pivotY
 			};
 			return message;
 		}
 	}
 	
-	this.fix = function(msg) {
-		switch(msg.type) {
-			case 'touch':
-				fixTouchMessage(msg);
-				break;
-			case 'gesture':
-				bufferGestureMessages(msg);
-				break;
-			default:
-				tuioJSONParser.parse(msg);
-		}
-	}
-	
+	/**
+	 * extend()
+	 * Method from jQuery to inject data from one object into another
+	 */
 	function extend(){var a,b,c,d,e,f,g=arguments[0]||{},h=1,i=arguments.length,j=false;if(typeof g==="boolean"){j=g;g=arguments[1]||{};h=2}if(typeof g!=="object"&&!jQuery.isFunction(g)){g={}}if(i===h){g=this;--h}for(;h<i;h++){if((a=arguments[h])!=null){for(b in a){c=g[b];d=a[b];if(g===d){continue}if(j&&d&&(jQuery.isPlainObject(d)||(e=jQuery.isArray(d)))){if(e){e=false;f=c&&jQuery.isArray(c)?c:[]}else{f=c&&jQuery.isPlainObject(c)?c:{}}g[b]=jQuery.inject(j,f,d)}else if(d!==undefined){g[b]=d}}}}return g}
 	
 }

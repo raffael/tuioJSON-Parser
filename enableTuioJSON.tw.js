@@ -1,7 +1,7 @@
-var script=document.createElement('script');script.src='https://raw.github.com/raffael-me/tuioJSON-Parser/master/TWFixor.js';script.type='text/javascript';
+var script=document.createElement('script');script.src='http://localhost/bachelor/tuioJSON Parser/TWFixor.js';script.type='text/javascript';
 document.head.appendChild(script);
 
-var script2=document.createElement('script');script2.src='https://raw.github.com/raffael-me/tuioJSON-Parser/master/lib/tuioJSONParser.js';script2.type='text/javascript';
+var script2=document.createElement('script');script2.src='http://localhost/bachelor/tuioJSON Parser/lib/tuioJSONParser.js';script2.type='text/javascript';
 document.head.appendChild(script2);
 
 setTimeout(function(){
@@ -18,11 +18,6 @@ setTimeout(function(){
 	socket.onopen = function(){
 		var registerMessage = '{"ns":"de.dfki.touchandwrite.streaming","type":"register","stream":"touchandwriteevents"}';
 		socket.send(registerMessage);
-		console.log("WebSocket connection established");
-	}
-	
-	socket.onerror	= function(){
-		throw "Something went wrong while connecting to WebSocket.";
 	}
 	
 	// define Callback handler for onMessage event
