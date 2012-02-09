@@ -30,6 +30,8 @@ function TWFixor(options) {
 			case 'gesture':
 				bufferGestureMessages(msg);
 				break;
+			case 'pen':
+				fixPenMessage(msg);
 			default:
 				tuioJSONParser.parse(msg);
 		}
@@ -74,6 +76,44 @@ function TWFixor(options) {
 		}
 		lastStateForId[message.id]	= message.state;
 	}
+	
+	/*  - - - - - - PENS - - - - - */
+	
+	/**
+	 * Since the T&W Server does not send 'start', 'move' and 'end' messages in the 'pen' messages, they
+	 * have to be added in this Fixor
+	 */
+	var lastPenState;
+	var penTimeout;
+	function fixPenMessage(message) {
+		switch(lastPenState) {
+			case 'start':
+				message.state	= 'move';
+			case 'move':
+				message.state	= 'move';
+				break;
+			case 'end':
+				break;
+			default:
+				message.state	= 'start';
+				break;				
+		}
+		lastPenState	= message.state;
+		tuioJSONParser.parse(message);
+		resetPenTimeout(message);
+	}
+	
+	function resetPenTimeout(message) {
+		if (penTimeout) clearTimeout(penTimeout);
+		penTimeout			= setTimeout(function(){
+			message.state	= 'end';
+			lastPenState	= null; 
+			tuioJSONParser.parse(message);
+		}, 50);
+	}
+	
+	
+	/*  - - - - - - GESTURES - - - - - */
 	
 	/**
 	 * currentRotationInDegree stores the last value of the rotation gesture in degrees
