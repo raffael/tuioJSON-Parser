@@ -100,7 +100,6 @@ function TWFixor(options) {
 		}
 		lastPenState	= message.state;
 		tuioJSONParser.parse(message);
-		console.log("out for parsing: ",message);
 		resetPenTimeout(message);
 	}
 	
