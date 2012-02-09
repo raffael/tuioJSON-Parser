@@ -139,7 +139,7 @@ function TWFixor(options) {
 	 * for gestures(!)
 	 */
 	function fixGestureMessage(message) {
-		console.log("parse this: ",message);
+		//console.log("parse this: ",message);
 		/**
 		 * First, translate relative radians to absolute degrees in 'rotate' messages
 		 */
