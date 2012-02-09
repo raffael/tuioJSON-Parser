@@ -7,7 +7,7 @@ function TWFixor(options) {
 		verboseMode: false,
 		reanimationTimeOut: 20,
 		mergingTimeout: 20,
-		mergeGestures: false,
+		mergeGestures: true,
 		tuioJSONParser: undefined
 	},options);
 	
@@ -217,8 +217,8 @@ function TWFixor(options) {
 			if (rotateHasStarted && scaleHasStarted) {
 				if (isRotate && isChange && !readyToSendChangeEvents) {
 					if (bufferedMessage) {
-						bufferedMessage.x		= message.pivotX;
-						bufferedMessage.y		= message.pivotY;
+						bufferedMessage.pivotX	= message.pivotX;
+						bufferedMessage.pivotY	= message.pivotY;
 						
 						tuioJSONParser.parse(bufferedMessage);
 						
@@ -302,7 +302,7 @@ function TWFixor(options) {
 				state:		state,
 				scale:		lastScaleGestureMessage.scale,
 				rotation:	lastRotateGestureMessage.rotation,
-				touches:	[{x: message.pivotX, y: message.pivotY},{x: message.pivotX, y: message.pivotY}],
+				touches:	[{x: lastRotateGestureMessage.pivotX, y: lastRotateGestureMessage.pivotY},{x: lastRotateGestureMessage.pivotX, y: lastRotateGestureMessage.pivotY}],
 				pivotX:		lastRotateGestureMessage.pivotX,
 				pivotY:		lastRotateGestureMessage.pivotY
 			};

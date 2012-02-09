@@ -58,21 +58,23 @@
 		
 		
 		$(document).ready(function(){
-			
 			var startX, startY;
-			$('#red').bind('gesturestart',function(event){
+			$('div').bind('gesturestart',function(event){
 				event = event.originalEvent;
 				startX= event.clientX;
 				startY= event.clientY;
 				
 			}).bind('gesturechange', function(event){
 				event = event.originalEvent;
-			
+				/*
 				var x = event.clientX - startX,
 					y = event.clientY - startY,
 					css = 'rotate('+event.rotation+'deg) scale('+event.scale+') translateX('+x+'px) translateY('+y+'px)';
+				*/
+				var css = 'rotate('+event.rotation+'deg) scale('+event.scale+')';
 				$(this).css('-webkit-transform',css);
 			});
+
 		});
 		
 	</script>
@@ -82,8 +84,8 @@
 			position: absolute;
 			top: 100px;
 			left: 100px;
-			width: 400px;
-			height: 400px;
+			width: 600px;
+			height: 600px;
 			background: red;
 			box-shadow: 0px 3px 5px #444;
 			
@@ -92,13 +94,13 @@
 </head>
 <body ontouchmove="prevent(event);" onscroll="prevent(event);">
 	<div id="multitouchReceptor"
-	style="position:  absolute; top: 0;left: 0;width: 0; height: 0;"
+	style="position:  absolute;"
 	ontouchstart="this.style.backgroundColor='#eee';"
 	ontouchmove="log(event);"
 	ontouchend="this.style.backgroundColor='white';"
 	onclick=""></div>
 	
-	<div id="red"></div>
+	<div id="red" ongesturestart="alert('asd');"></div>
 	
 </body>
 </html>
