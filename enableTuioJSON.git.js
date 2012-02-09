@@ -13,11 +13,11 @@ setTimeout(function(){
 		// define Callback handler for opOpen event
 		socket.onopen = function(){
 			socket.send('{"ns":"de.dfki.touchandwrite.streaming","type":"register","stream":"touchandwriteevents","utid":3}');
+			console.log("tuioJSON is ready");
 		}
 		
 		// define Callback handler for onMessage event
 		socket.onmessage = function(msg){
-			console.log("tuioJSON is ready");
 			// extract JSON data from message
 			var data = JSON.parse(msg.data);
 			// post Timestamp
