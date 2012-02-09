@@ -26,4 +26,4 @@ setTimeout(function(){
 			parser.parse(data);
 		}
 		
-}, 500);
+}, 2000);
