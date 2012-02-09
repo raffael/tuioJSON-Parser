@@ -50,15 +50,55 @@
 			event.preventDefault();
 			return false;
 		}
+		
+		function gest(event) {
+			$('#red').css('-webkit-transform','rotate('+event.rotation+'deg) scale('+event.scale+')');
+			console.log("event is here");
+		}
+		
+		
+		$(document).ready(function(){
+			
+			var startX, startY;
+			$('#red').bind('gesturestart',function(event){
+				event = event.originalEvent;
+				startX= event.clientX;
+				startY= event.clientY;
+				
+			}).bind('gesturechange', function(event){
+				event = event.originalEvent;
+			
+				var x = event.clientX - startX,
+					y = event.clientY - startY,
+					css = 'rotate('+event.rotation+'deg) scale('+event.scale+') translateX('+x+'px) translateY('+y+'px)';
+				$(this).css('-webkit-transform',css);
+			});
+		});
+		
 	</script>
+	
+	<style>
+		#red {
+			position: absolute;
+			top: 100px;
+			left: 100px;
+			width: 400px;
+			height: 400px;
+			background: red;
+			box-shadow: 0px 3px 5px #444;
+			
+		}
+	</style>
 </head>
 <body ontouchmove="prevent(event);" onscroll="prevent(event);">
 	<div id="multitouchReceptor"
-	style="width:99%; height:  99%;position:  absolute; top: 0;left: 0;right: 0;bottom: 0;"
+	style="position:  absolute; top: 0;left: 0;width: 0; height: 0;"
 	ontouchstart="this.style.backgroundColor='#eee';"
 	ontouchmove="log(event);"
 	ontouchend="this.style.backgroundColor='white';"
 	onclick=""></div>
+	
+	<div id="red" ongesturechange="gest(event);"></div>
 	
 </body>
 </html>

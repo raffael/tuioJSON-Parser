@@ -6,6 +6,8 @@ function TWFixor(options) {
 		/* if set to true, the script will output a lot of information to the console */
 		verboseMode: false,
 		reanimationTimeOut: 20,
+		mergingTimeout: 20,
+		mergeGestures: true,
 		tuioJSONParser: null
 	},options);
 	
@@ -26,11 +28,10 @@ function TWFixor(options) {
 	 */
 	var identifierTimeOuts = {};
 	
-	
 	function fixTouchMessage(message) {
 		switch (message.state) {
-			case 'started':
-				if (lastStateForId[message.id] && lastStateForId[message.id]=='remove') {
+			case 'start':
+				if (lastStateForId[message.id] && lastStateForId[message.id]=='end') {
 					// clear any killer timeout:
 					if (identifierTimeOuts[message.id]) clearTimeout(identifierTimeOuts[message.id]);
 				} else {
@@ -40,7 +41,7 @@ function TWFixor(options) {
 			case 'move':
 				tuioJSONParser.parse(message);
 				break;
-			case 'remove':
+			case 'end':
 				// trigger the event later
 				(function(message){
 					identifierTimeOuts[message.id] = setTimeout(function(){
@@ -54,11 +55,209 @@ function TWFixor(options) {
 		lastStateForId[message.id]	= message.state;
 	}
 	
-	this.fix = function(msg) {
+	/**
+	 * currentRotationInDegree stores the last value of the rotation gesture in degrees
+	 */
+	var currentRotationInDegree;
+	var currentScaleFactor;
 	
+	var lastScaleGestureMessage	= null,
+		scaleHasStarted			= false;
+	var lastRotateGestureMessage= null,
+		rotateHasStarted		= false;
+	
+	/**
+	 * buffering
+	 */
+	var lastGestureState = {};
+	var gestureTimeout = {};
+	
+	
+	function bufferGestureMessages(message) {
+		
+		switch(message.state) {
+			case 'start':
+				if (lastGestureState[message.gestureType]=='end' && gestureTimeout[message.gestureType]) {
+					clearTimeout(gestureTimeout[message.gestureType]);
+				} else {
+					fixGestureMessage(message);
+				}
+				break;
+				
+			case 'change':
+				fixGestureMessage(message);
+				break;
+				
+			case 'end':
+				// trigger the event later
+				(function(message){
+					gestureTimeout[message.gestureType] = setTimeout(function(){
+						fixGestureMessage(message);
+					}, options.reanimationTimeOut);
+				})(message);
+				break;
+		}
+		
+		lastGestureState[message.gestureType]	= message.state;
+		
+	}
+	
+	var bufferedMessage;
+	var mergedMessageStartHasBeenFired = false;
+	var readyToSendChangeEvents = false;
+	/**
+	 * Rotate gestures need to be fixed, since the T&W SDK delivers relative angles in radians.
+	 * To fix that, the absolute rotation in degrees will be injected into the message.
+	 * 
+	 * Scale gestures need to be fixed, since the T&W SDK delivers relative scalings.
+	 * To fix that, the absolute scale will be injected into the message
+	 * 
+	 * If set via the options, scale and rotate gestures will be merged together into one, so that
+	 * the resulting gesture contains both scale and rotation value (then already fixed into absolute
+	 * ones).
+	 * 
+	 * ASSUMPTION: No multiple gestures at once possible, since T&W does not deliver identifiers
+	 * for gestures(!)
+	 */
+	function fixGestureMessage(message) {
+		// translate radians into degree
+		if (message.gestureType=='rotate') {
+			switch(message.state) {
+				case 'start':
+					currentRotationInDegree = 0;
+					break;
+
+				case 'change':
+					var relRotationDegree	= message.rotation * (180.0 / Math.PI);
+					message.rotation	= currentRotationInDegree += relRotationDegree;
+					break;
+
+				case 'end':
+					message.rotation	= currentRotationInDegree;
+					break;
+			}
+		}
+		
+		// calculate absolute scale factors from relative ones		
+		if (message.gestureType=='scale') {
+			switch(message.state) {
+				case 'start':
+					currentScaleFactor	= 1;
+					break;
+				case 'change':
+				case 'end':			// T&W sends '1' in end state
+					currentScaleFactor = currentScaleFactor * message.scale;
+					break;
+			}
+			message.scale	= currentScaleFactor;
+		}
+		
+		/**
+		 * if set to TRUE, scale and rotate gestures will be merged together to one gesture as the W3C proposes.
+		 * Therefore, as soon as both a scale and a rotate gesture have started (that is, a 'start' state came in for both),
+		 * a new tuioJSON conform message will be built that contains the values scale and rotate in it.
+		 * The original gestureType=='scale' & 'rotate' messages will be dropped (!) and not delivered to the parser (TODO: think about that!).
+		 * 
+		 * Unfortunately, both scale and rotate gestures coming from T&W do not supply any exact position information for the
+		 * corresponding Touch events that, together, trigger the gesture. The only information we get, is the pivotX/Y
+		 * data of the rotate gesture. That's why we assume this as the gesture's position.
+		 * 
+		 * Next bad thing is that the rotate gesture sends its pivot information from its first change event up. The start state
+		 * only has the pivotX/Y set to 0.
+		 * That's why we have to wait for a rotate:change event to come in and get its position information before triggering
+		 * any of the merged messages.
+		 */
+		if (options.mergeGestures) {
+			if (message.gestureType=='drag') return;
+
+			var builtMessageState,
+				isRotate= (message.gestureType=='rotate'),
+				isScale	= (message.gestureType=='scale'),
+				isStart	= (message.state=='start'),
+				isChange= (message.state=='change'),
+				isEnd	= (message.state=='end');
+			
+			if (isScale) lastScaleGestureMessage = message;
+			if (isRotate) lastRotateGestureMessage = message;
+
+			if (mergedMessageStartHasBeenFired) builtMessageState = 'change';
+						
+			if (isStart) {
+				if (isScale) scaleHasStarted	= true;
+				if (isRotate) rotateHasStarted	= true;
+				builtMessageState	= 'start';
+			} else if (isEnd) {
+				builtMessageState	= 'end';
+			}
+			
+			if (rotateHasStarted && scaleHasStarted) {
+				if (isRotate && isChange && !readyToSendChangeEvents) {
+					if (bufferedMessage) {
+						bufferedMessage.x		= message.pivotX;
+						bufferedMessage.y		= message.pivotY;
+						
+						tuioJSONParser.parse(bufferedMessage);
+						
+						bufferedMessage			= null;
+						mergedMessageStartHasBeenFired	= true;
+					}
+					readyToSendChangeEvents		= true;
+					builtMessageState = 'change';
+				}
+
+				if (builtMessageState=='start') {
+					bufferedMessage	= buildMessageFromLastGestureMessages(builtMessageState);
+					message			= null;
+				} else {
+					if (readyToSendChangeEvents) message = buildMessageFromLastGestureMessages(builtMessageState);
+					else message	= null;
+				}
+			} else {
+				// drop all other gesture messages otherwise
+				message = null;
+			}
+			
+			if (message) {
+				tuioJSONParser.parse(message);
+			}
+			
+			if (isEnd) {
+				rotateHasStarted				= false;
+				scaleHasStarted					= false;
+				mergedMessageStartHasBeenFired	= false;
+				readyToSendChangeEvents			= false;
+				bufferedMessage					= null;
+				lastScaleGestureMessage			= null;
+				lastRotateGestureMessage		= null;
+				console.log("reset");
+			}
+			
+		} else {
+			tuioJSONParser.parse(message);	
+		}
+		
+		// used to build up a message up from both a scale and a rotate message		
+		function buildMessageFromLastGestureMessages(state) {
+			var message = {
+				type:	'gesture',
+				gestureType: 'mixed',
+				state:	state,
+				scale:	lastScaleGestureMessage.scale,
+				rotation:lastRotateGestureMessage.rotation,
+				x:		lastRotateGestureMessage.pivotX,
+				y:		lastRotateGestureMessage.pivotY
+			};
+			return message;
+		}
+	}
+	
+	this.fix = function(msg) {
 		switch(msg.type) {
 			case 'touch':
 				fixTouchMessage(msg);
+				break;
+			case 'gesture':
+				bufferGestureMessages(msg);
 				break;
 			default:
 				tuioJSONParser.parse(msg);
