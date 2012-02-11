@@ -1,12 +1,18 @@
-var script2=document.createElement('script');script2.src='http://raffael.local/bachelor/tuioJSON Parser/lib/tuioJSONParser.js';script2.type='text/javascript';
-document.head.appendChild(script2);
+var scriptTuioParser	= document.createElement('script');
+scriptTuioParser.src	='http://raffael.local/bachelor/tuioJSON Parser/lib/tuioJSONParser.js';
+scriptTuioParser.type	='text/javascript';
+scriptTuioParser.async	= true;
+scriptTuioParser.onload	= function(){
+	
+}
+document.head.appendChild(scriptTuioParser);
+
+
+var parser	= new tuioJSONParser({
+	logAll: false
+});
 
 setTimeout(function(){
-	var parser	= new tuioJSONParser({
-		logAll: false
-	});
-
-
 		// initialize a WebSocket Object
 		socket = new WebSocket('ws://127.0.0.1:8787/jWebSocket/jWebSocket');
 		

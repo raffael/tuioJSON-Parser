@@ -1,30 +1,62 @@
-var script=document.createElement('script');script.src='http://localhost/bachelor/tuioJSON Parser/TWFixor.js';script.type='text/javascript';
-document.head.appendChild(script);
+/**
+ * state variables
+ */
+var tuioParserComplete	= false,
+	twFixorComplete		= false;
 
-var script2=document.createElement('script');script2.src='http://localhost/bachelor/tuioJSON Parser/lib/tuioJSONParser.js';script2.type='text/javascript';
-document.head.appendChild(script2);
+/**
+ * prepare script injecting and define onload event handlers
+ */
+var scriptTuioParser	= document.createElement('script');
+scriptTuioParser.src	='http://raffael.local/bachelor/tuioJSON Parser/lib/tuioJSONParser.js';
+scriptTuioParser.type	='text/javascript';
+scriptTuioParser.async	= true;
+scriptTuioParser.onload	= function(){
+	tuioParserComplete	= true;
+	injectingTuioComplete();
+}
 
-setTimeout(function(){
-	var parser	= new tuioJSONParser({
-	});
-	var fixor	= new TWFixor({
-		tuioJSONParser:	parser
-	});
+var scriptTWFixor		= document.createElement('script');
+scriptTWFixor.src		='http://raffael.local/bachelor/tuioJSON Parser/TWFixor.js';
+scriptTWFixor.type		='text/javascript';
+scriptTWFixor.async		= true;
+scriptTWFixor.onload	= function(){
+	twFixorComplete		= true;
+	injectingTuioComplete();
+}
 
-	// initialize a WebSocket Object
-	socket = new WebSocket('ws://127.0.0.1:8787/jWebSocket/jWebSocket');
-	
-	// define Callback handler for opOpen event
-	socket.onopen = function(){
-		var registerMessage = '{"ns":"de.dfki.touchandwrite.streaming","type":"register","stream":"touchandwriteevents"}';
-		socket.send(registerMessage);
+/**
+ * append the two scripts
+ */
+document.head.appendChild(scriptTuioParser);
+document.head.appendChild(scriptTWFixor);
+
+/**
+ * as soon as both scripts have been loaded, create the parser and the WebSocket connection
+ */
+function injectingTuioComplete(){
+	if (tuioParserComplete && twFixorComplete) {
+		window.parserProxy	= new TWFixor({
+			tuioJSONParser:	new tuioJSONParser({
+				// parsing options
+			})
+		});
+		
+		// initialize a WebSocket Object
+		socket = new WebSocket('ws://127.0.0.1:8787/jWebSocket/jWebSocket');
+		
+		// define Callback handler for opOpen event
+		socket.onopen = function(){
+			var registerMessage = '{"ns":"de.dfki.touchandwrite.streaming","type":"register","stream":"touchandwriteevents"}';
+			socket.send(registerMessage);
+		}
+		
+		// define Callback handler for onMessage event
+		socket.onmessage = function(msg){
+			// extract JSON data from message
+			var data = JSON.parse(msg.data);
+			// and pass it to the TuioJSON parser
+			window.parserProxy.fix(data);
+		}
 	}
-	
-	// define Callback handler for onMessage event
-	socket.onmessage = function(msg){
-		// extract JSON data from message
-		var data = JSON.parse(msg.data);
-		// and pass it to the TuioJSON parser
-		fixor.fix(data);
-	}
-}, 2000);
+}

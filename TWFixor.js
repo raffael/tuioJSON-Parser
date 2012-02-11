@@ -1,3 +1,56 @@
+/**
+ * 
+ * TWFixor
+ * 
+ * This class provides functionality to fix errors in tuioJSON message that come from the
+ * T&W Server before passing them to the tuioJSONParser object.
+ * Since the tuioJSON protocol is still a draft, the T&W developers had not the possibility
+ * to meet all requirements.
+ * 
+ * Misbehavior:		Pen event currently do not contain identifier information
+ * Fix:				Inject a fixed identifier into every Pen message
+ * Sequel:			No multiple Pen inputs at once possible, since no distinguishment is possible right now
+ * 
+ * Misbehavior:		Pen position events currently do not contain a 'state'
+ * Fix:				The first pen position event is a 'start', all others are 'change'. Set a timeout to fire an 'end'
+ * Sequel:			Invalid penend event, since it is artificial
+ * 
+ * Misbehavior:		All gesture events currently do not contain identifier information
+ * Fix:				Inject a fixed identifier into every Pen message
+ * Sequel:			No multiple Gesture inputs at once possible, since no distinguishment is possible right now
+ * 
+ * Misbehavior:		All gesture events currently do not contain the 'touches' array, which is required to determine the target properly
+ * Fix:				Artificially inject the 'touches' array with two identical touches whose positions are the same as the pivot information of the gesture
+ * Sequel:			If the user begins the gesture outside of the element A but the pivot is *on* the element A, the gesture will be triggered on A, which is not right
+ * 
+ * Misbehavior:		All Scale event messages do contain neither pivot information (, nor 'touches' array)
+ * Fix:				Use (0,0) as pivot.
+ * Sequel:			Scale gesture probably will be triggered on document, unless there is an element at 0,0
+ * 
+ * Misbehavior:		rotatestart messages currently do not contain pivot position information
+ * Fix:				Buffer the start message and send it as soon as the first rotatechange event arrives and inject the pivot information for rotatechange into the buffered rotatestart
+ * 
+ * Misbehavior:		
+ * Fix:				
+ * Sequel:			
+ * 
+ * Misbehavior:		
+ * Fix:				
+ * Sequel:			
+ * 
+ * Misbehavior:		
+ * Fix:				
+ * Sequel:			
+ * 
+ * While working with TongSeng:
+ * 
+ * Misbehavior:		TongSeng seems to not send Alive messages as Tuio Server, what results in quick 'remove, start' sequences in both Touch and Gesture events
+ * Fix:				Delay all 'remove' events (Touch and Gesture) with a timeout and clear the timeout if a 'start' follows quickly after a 'remove' was sent before
+ * Sequel:			Heavy use of timeouts, complex fix handling, invalid remove events since they are delayed [ms].
+ * 
+ */
+
+
 function TWFixor(options) {
 
 	options = extend({
@@ -7,8 +60,10 @@ function TWFixor(options) {
 		verboseMode: false,
 		reanimationTimeOut: 20,
 		mergingTimeout: 20,
-		mergeGestures: true,
-		tuioJSONParser: undefined
+		mergeGestures: false,
+		tuioJSONParser: undefined,
+		gestureChangeEventDropRate: 5,
+		doBuffering:	true
 	},options);
 	
 	if (!options.tuioJSONParser) throw "No tuioJSONParser object found";
@@ -22,41 +77,59 @@ function TWFixor(options) {
 	 * @param	msg		The decoded JSON message
 	 * @return	-
 	 */
-	this.fix = function(msg) {
-		switch(msg.type) {
+	this.fix = function(message) {
+		/**
+		 * clear invalid messages
+		 */
+		if (message.type=='welcome' || message.type=='response') {
+			return;
+		}
+		
+		/**
+		 * clear invalid message attributes
+		 */
+		delete message.streamID;
+		
+		switch(message.type) {
 			case 'touch':
-				fixTouchMessage(msg);
+				if (options.doBuffering) bufferTouchMessage(message);
+				else fixTouchMessage(message);
 				break;
 			case 'gesture':
-				bufferGestureMessages(msg);
+				if (options.doBuffering) bufferGestureMessage(message);
+				else fixGestureMessage(message);
 				break;
 			case 'pen':
-				fixPenMessage(msg);
+				fixPenMessage(message);
+				break;
 			default:
-				tuioJSONParser.parse(msg);
+				tuioJSONParser.parse(message);
 		}
 	}
 	
-	
+
+/*  - - - - - - TOUCH - - - - - */
+
+
 	/**
-	 * lastStateForId
+	 * lastTouchState
 	 * stores the last message state ('started', 'move', 'remove') for the identifiers, which is
 	 * necessary for fixing the T&W misbehavior
 	 */
-	var lastStateForId	= {};
+	var lastTouchState	= {};
 	
 	/**
-	 * identifierTimeOuts
+	 * touchTimeouts
 	 * stores setTimeout objects that are necessary to delete Touches to handle the T&W misbehavior
 	 */
-	var identifierTimeOuts = {};
+	var touchTimeouts = {};
 	
-	function fixTouchMessage(message) {
+	function bufferTouchMessage(message) {		
 		switch (message.state) {
 			case 'start':
-				if (lastStateForId[message.id] && lastStateForId[message.id]=='end') {
+				if (lastTouchState[message.id] && lastTouchState[message.id]=='end') {
 					// clear any killer timeout:
-					if (identifierTimeOuts[message.id]) clearTimeout(identifierTimeOuts[message.id]);
+					if (touchTimeouts[message.id]) clearTimeout(touchTimeouts[message.id]);
 				} else {
 					tuioJSONParser.parse(message);
 				}
@@ -67,58 +140,79 @@ function TWFixor(options) {
 			case 'end':
 				// trigger the event later
 				(function(message){
-					identifierTimeOuts[message.id] = setTimeout(function(){
+					touchTimeouts[message.id] = setTimeout(function(){
 						tuioJSONParser.parse(message);
 					}, options.reanimationTimeOut);
 				})(message);
 				
 				break;
 		}
-		lastStateForId[message.id]	= message.state;
+		lastTouchState[message.id]	= message.state;
 	}
 	
-	/*  - - - - - - PENS - - - - - */
+	function fixTouchMessage(message){
+		tuioJSONParser.parse(message);
+	}
+	
+	
+/*  - - - - - - PEN - - - - - */
+	
 	
 	/**
 	 * Since the T&W Server does not send 'start', 'move' and 'end' messages in the 'pen' messages, they
 	 * have to be added in this Fixor
 	 */
-	var lastPenState;
-	var penTimeout;
+	var lastPenState	= {};
+	var penTimeouts		= {};
 	function fixPenMessage(message) {
-		switch(lastPenState) {
-			case 'start':
-				message.state	= 'move';
-			case 'move':
-				message.state	= 'move';
-				break;
-			case 'end':
-				break;
-			default:
-				message.state	= 'start';
-				break;				
+		
+		if (message.words) {
+		// Handwriting event
+			message.state	= 'handwritingresult';
+			tuioJSONParser.parse(message);
+		} else {
+		// simple Pen position event
+			/**
+			 * T&W currently does not deliver any kind of identifier information for the Pen events,
+			 * so inject an identifier manually and assume that there's only one Pen at once active
+			 */
+			message.id	= 1;
+			
+			switch(lastPenState[message.id]) {
+				case 'start':
+					message.state	= 'move';
+				case 'move':
+					message.state	= 'move';
+					break;
+				case 'end':
+					break;
+				default:
+					message.state	= 'start';
+					break;				
+			}
+			lastPenState[message.id]	= message.state;
+			tuioJSONParser.parse(message);
+			resetPenTimeout(message);
 		}
-		lastPenState	= message.state;
-		tuioJSONParser.parse(message);
-		resetPenTimeout(message);
 	}
 	
 	function resetPenTimeout(message) {
-		if (penTimeout) clearTimeout(penTimeout);
-		penTimeout			= setTimeout(function(){
-			message.state	= 'end';
-			lastPenState	= null; 
+		if (penTimeouts[message.id]) clearTimeout(penTimeouts[message.id]);
+		penTimeouts[message.id]			= setTimeout(function(){
+			message.state				= 'end';
+			lastPenState[message.id]	= null; 
 			tuioJSONParser.parse(message);
 		}, 50);
 	}
 	
 	
-	/*  - - - - - - GESTURES - - - - - */
+/*  - - - - - - GESTURE - - - - - */
+	
 	
 	/**
-	 * currentRotationInDegree stores the last value of the rotation gesture in degrees
+	 * currentRotationInDegrees stores the last value of the rotation gesture in degrees
 	 */
-	var currentRotationInDegree;
+	var currentRotationInDegrees;
 	var currentScaleFactor;
 	
 	var lastScaleGestureMessage	= null,
@@ -131,10 +225,8 @@ function TWFixor(options) {
 	 */
 	var lastGestureState = {};
 	var gestureTimeout = {};
-	
-	
-	function bufferGestureMessages(message) {
 		
+	function bufferGestureMessage(message) {
 		switch(message.state) {
 			case 'start':
 				if (lastGestureState[message.gestureType]=='end' && gestureTimeout[message.gestureType]) {
@@ -160,10 +252,13 @@ function TWFixor(options) {
 		
 		lastGestureState[message.gestureType]	= message.state;
 	}
-	
+
 	var bufferedMessage;
 	var mergedMessageStartHasBeenFired = false;
 	var readyToSendChangeEvents = false;
+	
+	var gestureChangeTicker	= {};
+	
 	/**
 	 * Rotate gestures need to be fixed, since the T&W SDK delivers relative angles in radians.
 	 * To fix that, the absolute rotation in degrees will be injected into the message.
@@ -179,23 +274,40 @@ function TWFixor(options) {
 	 * for gestures(!)
 	 */
 	function fixGestureMessage(message) {
-		//console.log("parse this: ",message);
+		/**
+		 * Give those Gesture messages an identifier.
+		 * Multiple Rotate/Scale/Drag gestures at once must be differentiated using the identifier
+		 * Since T&W currently does not deliver any identifier information, set all identifiers
+		 * to '1' --> implies that there may not be multiple gestures of the same type at once!
+		 */
+		message.id	= 1;
+		
+		/**
+		 * caching for processing
+		 */
+		var isRotate= (message.gestureType=='rotate'),
+			isScale	= (message.gestureType=='scale'),
+			isDrag	= (message.gestureType=='drag'),
+			isStart	= (message.state=='start'),
+			isChange= (message.state=='change'),
+			isEnd	= (message.state=='end');
+		
 		/**
 		 * First, translate relative radians to absolute degrees in 'rotate' messages
 		 */
-		if (message.gestureType=='rotate') {
+		if (isRotate) {
 			switch(message.state) {
 				case 'start':
-					currentRotationInDegree = 0;
+					currentRotationInDegrees = 0;
 					break;
 
 				case 'change':
 					var relRotationDegree	= message.rotation * (180.0 / Math.PI);
-					message.rotation	= currentRotationInDegree += relRotationDegree;
+					message.rotation	= currentRotationInDegrees += relRotationDegree;
 					break;
 
 				case 'end':
-					message.rotation	= currentRotationInDegree;
+					message.rotation	= currentRotationInDegrees;
 					break;
 			}
 		}
@@ -203,7 +315,7 @@ function TWFixor(options) {
 		/**
 		 * Then, translate relative scale factors to absolute ones in 'scale' messages
 		 */
-		if (message.gestureType=='scale') {
+		if (isScale) {
 			switch(message.state) {
 				case 'start':
 					currentScaleFactor	= 1;
@@ -216,6 +328,13 @@ function TWFixor(options) {
 			message.scale	= currentScaleFactor;
 		}
 		
+		if (isDrag) {
+			message.x	= message.originX;
+			message.y	= message.originY;
+			delete message.originX;
+			delete message.originY;
+		}
+			
 		/**
 		 * If set to TRUE, scale and rotate gestures will be merged together to one gesture as the W3C proposes.
 		 * Therefore, as soon as both a scale and a rotate gesture have started (that is, a 'start' state came in for both),
@@ -234,12 +353,7 @@ function TWFixor(options) {
 		if (options.mergeGestures) {
 			if (message.gestureType=='drag') return;
 
-			var builtMessageState,
-				isRotate= (message.gestureType=='rotate'),
-				isScale	= (message.gestureType=='scale'),
-				isStart	= (message.state=='start'),
-				isChange= (message.state=='change'),
-				isEnd	= (message.state=='end');
+			var builtMessageState;
 			
 			if (isScale) lastScaleGestureMessage = message;
 			if (isRotate) lastRotateGestureMessage = message;
@@ -297,11 +411,6 @@ function TWFixor(options) {
 			}
 			
 		} else {
-			var isRotate		= (message.gestureType=='rotate'),
-				isStart			= (message.state=='start'),
-				isChange		= (message.state=='change'),
-				isEnd			= (message.end=='end');
-
 			/**
 			 * rotatestart messages do not contain x/y information.
 			 * For rotate messages, the rotatestart message needs to be buffered until a
@@ -314,19 +423,37 @@ function TWFixor(options) {
 				
 				if (isStart) {
 					bufferedMessage	= message;
-					console.log("start happened, buffering message: ",bufferedMessage);
 					message			= null;
-				} else if (isChange) {
+				}
+				if (isChange) {
 					if (bufferedMessage) {
-						bufferedMessage.x	= message.x;
-						bufferedMessage.y	= message.y;
+						extend(bufferedMessage, {
+							state:	'start',
+							pivotX:	message.pivotX,
+							pivotY:	message.pivotY,
+							touches:[{x: message.pivotX, y: message.pivotY},{x: message.pivotX, y: message.pivotY}]
+						});
 						tuioJSONParser.parse(bufferedMessage);
-						console.log("buffered fired as "+bufferedMessage.state);
 					}
 					bufferedMessage	= null;
-				} else if (isEnd) {
+					
+					if (dropBecauseOfDropRate(message.gestureType)) message = null;
+				}
+				if (isEnd) {
 					bufferedMessage	= null;
 				}
+			}
+			
+			if (isScale) {
+			// WARNING: scale event so far do not contain any position information
+				extend(message, {
+					pivotX:	0,
+					pivotY: 0,
+					touches: [{x:0,y:0},{x:0, y:0}]
+				});
+			}
+			
+			if (isDrag) {
 			}
 			
 			if (message) tuioJSONParser.parse(message);	
@@ -347,6 +474,19 @@ function TWFixor(options) {
 				pivotY:		lastRotateGestureMessage.pivotY
 			};
 			return message;
+		}
+		
+		/**
+		 * If the T&W is sending too many gesture messages, you can throttle them using
+		 * the gestureChangeEventDropRate option field
+		 */
+		function dropBecauseOfDropRate(gestureType) {
+			if (gestureChangeTicker[gestureType]==null) {
+				gestureChangeTicker[gestureType] = 0
+				return true;
+			} else {
+				return (gestureChangeTicker[message.gestureType]++ % options.gestureChangeEventDropRate!=0);
+			}
 		}
 	}
 	
