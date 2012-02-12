@@ -169,6 +169,7 @@ function TWFixor(options) {
 		if (message.words) {
 		// Handwriting event
 			message.state	= 'handwritingresult';
+			message.words	= message.words[0].alternatives;
 			tuioJSONParser.parse(message);
 		} else {
 		// simple Pen position event
