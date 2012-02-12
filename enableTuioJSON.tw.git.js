@@ -56,7 +56,7 @@ scriptTuioParser.onload	= function(){
 }
 
 var scriptTWFixor		= document.createElement('script');
-scriptTWFixor.src		='https://raw.github.com/raffael-me/tuioJSON-Parser/master/TWFixor.j';
+scriptTWFixor.src		='https://raw.github.com/raffael-me/tuioJSON-Parser/master/TWFixor.js';
 scriptTWFixor.type		='text/javascript';
 scriptTWFixor.async		= true;
 scriptTWFixor.onload	= function(){
