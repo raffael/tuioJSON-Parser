@@ -1,7 +1,7 @@
 /**
- * Use the following code for a bookmark:
+ * by Raffael Hannemann (http://www.raffael.me)
  * 
-	javascript:(function(){ var enabler	= document.createElement('script');enabler.src='http://localhost/bachelor/tuioJSON%20Parser/enableTuioJSON.tw.js';enabler.type="text/javascript";document.head.appendChild(enabler);})();
+ * You can use the Bookmarklet to enable Touch responsiveness using an item of your bookmarks bar.
  *
  */
 

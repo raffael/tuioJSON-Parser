@@ -60,5 +60,9 @@ The parser only needs a few options. You can pass an options object to the parse
 	
 ## T&W Fixor
 
-The Touch&Write Server automatically sends remove-start sequences while dragging with the fingers for a longer period of time.
-In order to fix that and to receive continuous dragging paths, the *TWFixor.js* has been written to pipe & filter the tuioJSON messages to the actual tuioJSON Parser.
+The Touch&Write Server (http://www.touchandwrite.de) does not send tuioJSON protocol valid messages yet since both projects are still under development.
+In order to fix that, the *TWFixor.js* has been written to pipe & filter the tuioJSON messages to the actual tuioJSON Parser.
+
+## Bookmarklet
+
+You can use the JavaScript code of the Bookmarklet to create an item in your Browser's bookmarks bar that enables the currently visited website to response to tuioJSON based Touch events.
