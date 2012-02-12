@@ -19,7 +19,7 @@
 
 		var parser	= new tuioJSONParser({
 		});
-		var fixor	= new TWFixor({
+		var parserProxy	= new TWFixor({
 			tuioJSONParser:	parser
 		});
 
@@ -40,8 +40,12 @@
 			// post Timestamp
 			if (window.location.hash.indexOf('logtimestamp')!=-1) console.log("receive@"+new Date());
 			// and pass it to the TuioJSON parser
-			fixor.fix(data);
+			parserProxy.fix(data);
 		}
+		
+		document.addEventListener('handwritingresult', function(event) {
+			console.log("HW:",event);
+		});
 		
 		function log(event) {
 		}

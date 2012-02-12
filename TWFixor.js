@@ -165,19 +165,27 @@ function TWFixor(options) {
 	var lastPenState	= {};
 	var penTimeouts		= {};
 	function fixPenMessage(message) {
-		
-		if (message.words) {
-		// Handwriting event
-			message.state	= 'handwritingresult';
-			message.words	= message.words[0].alternatives;
+		console.log(message);
+		if (message.words!=undefined || message.penType=='handwriting' && message.state=="result") {
+		// Handwriting result event
+			message.penType	= 'handwriting';
+			message.state	= 'result'
+			// fix wrong nesting:
+			if (message.words[0]!=undefined && message.words[0].alternatives) message.words	= message.words[0].alternatives;
 			tuioJSONParser.parse(message);
+					
+		} else if (message.penType=='shape') {
+		// Handwriting shape event
+			tuioJSONParser.parse(message);
+			
 		} else {
 		// simple Pen position event
 			/**
 			 * T&W currently does not deliver any kind of identifier information for the Pen events,
 			 * so inject an identifier manually and assume that there's only one Pen at once active
 			 */
-			message.id	= 1;
+			message.id		= 1;
+			message.penType	= 'point';
 			
 			switch(lastPenState[message.id]) {
 				case 'start':
