@@ -46,6 +46,7 @@ function injectingTuioComplete(){
 /**
  * prepare script injecting and define onload event handlers
  */
+// actual lib:
 var scriptTuioParser	= document.createElement('script');
 scriptTuioParser.src	='https://raw.github.com/raffael-me/tuioJSON-Parser/master/lib/tuioJSONParser.js';
 scriptTuioParser.type	='text/javascript';
@@ -55,6 +56,7 @@ scriptTuioParser.onload	= function(){
 	injectingTuioComplete();
 }
 
+// Fixor:
 var scriptTWFixor		= document.createElement('script');
 scriptTWFixor.src		='https://raw.github.com/raffael-me/tuioJSON-Parser/master/TWFixor.js';
 scriptTWFixor.type		='text/javascript';
