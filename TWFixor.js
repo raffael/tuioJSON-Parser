@@ -60,7 +60,7 @@ function TWFixor(options) {
 		verboseMode: false,
 		reanimationTimeOut: 20,
 		mergingTimeout: 20,
-		mergeGestures: false,
+		mergeGestures: true,
 		tuioJSONParser: undefined,
 		gestureChangeEventDropRate: 5,
 		doBuffering:	true
@@ -166,7 +166,7 @@ function TWFixor(options) {
 	var penTimeouts		= {};
 	function fixPenMessage(message) {
 		console.log(message);
-		if (message.words!=undefined || message.penType=='handwriting' && message.state=="result") {
+		if ((message.words!=undefined) || (message.penType=='handwriting' && message.state=="result")) {
 		// Handwriting result event
 			message.penType	= 'handwriting';
 			message.state	= 'result'
@@ -236,6 +236,15 @@ function TWFixor(options) {
 	var gestureTimeout = {};
 		
 	function bufferGestureMessage(message) {
+		// give them an identifier since T&W does not provide any identification information
+		switch(message.gestureType) {
+			case 'gesture':	message.id	= 1; break;
+			case 'scale':	message.id	= 2; break;
+			case 'rotation':message.id	= 3; break;
+			case 'drag':	message.id	= 4; break;
+			default:		message.id	= 5;
+		}
+		
 		switch(message.state) {
 			case 'start':
 				if (lastGestureState[message.gestureType]=='end' && gestureTimeout[message.gestureType]) {
