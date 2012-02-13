@@ -78,6 +78,7 @@ function TWFixor(options) {
 	 * @return	-
 	 */
 	this.fix = function(message) {
+				console.log(JSON.stringify(message));
 		/**
 		 * clear invalid messages
 		 */
@@ -100,7 +101,6 @@ function TWFixor(options) {
 				else fixGestureMessage(message);
 				break;
 			case 'pen':
-				console.log(JSON.stringify(message));
 				fixPenMessage(message);
 				break;
 			default:
