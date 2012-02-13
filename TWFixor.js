@@ -165,7 +165,6 @@ function TWFixor(options) {
 	var lastPenState	= {};
 	var penTimeouts		= {};
 	function fixPenMessage(message) {
-		console.log(message);
 		if ((message.words!=undefined) || (message.penType=='handwriting' && message.state=="result")) {
 		// Handwriting result event
 			message.penType	= 'handwriting';
