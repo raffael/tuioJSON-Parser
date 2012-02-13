@@ -60,7 +60,7 @@ function TWFixor(options) {
 		verboseMode: false,
 		reanimationTimeOut: 20,
 		mergingTimeout: 20,
-		mergeGestures: true,
+		mergeGestures: false,
 		tuioJSONParser: undefined,
 		gestureChangeEventDropRate: 5,
 		doBuffering:	true
@@ -175,7 +175,7 @@ function TWFixor(options) {
 	var lastPenState	= {};
 	var penTimeouts		= {};
 	function fixPenMessage(message) {
-		if ((message.words!=undefined) || (message.penType=='handwriting' && message.state=="result")) {
+		if ((message.words!=undefined)|| (message.penType=='handwriting' && message.state=="result")) {
 		// Handwriting result event
 			message.penType	= 'handwriting';
 			message.state	= 'result'
