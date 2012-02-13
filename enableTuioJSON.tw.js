@@ -31,6 +31,9 @@ function injectingTuioComplete(){
 			var registerMessage = '{"ns":"de.dfki.touchandwrite.streaming","type":"register","stream":"touchandwriteevents"}';
 			socket.send(registerMessage);
 			console.log("tuioJSON is ready");
+			var event	= document.createEvent('CustomEvent');
+			event.initCustomEvent('tuiojsonready', true, true, 1);
+			document.dispatchEvent(event);
 		}
 		
 		// define Callback handler for onMessage event

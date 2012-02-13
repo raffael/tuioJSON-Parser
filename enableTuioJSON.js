@@ -19,6 +19,9 @@ setTimeout(function(){
 		// define Callback handler for opOpen event
 		socket.onopen = function(){
 			socket.send('{"ns":"de.dfki.touchandwrite.streaming","type":"register","stream":"touchandwriteevents","utid":3}');
+			var event	= document.createEvent('CustomEvent');
+			event.initCustomEvent('tuiojsonready', true, true, 1);
+			document.dispatchEvent(event);
 		}
 		
 		// define Callback handler for onMessage event

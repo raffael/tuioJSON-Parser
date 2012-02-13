@@ -14,6 +14,9 @@ setTimeout(function(){
 		socket.onopen = function(){
 			socket.send('{"ns":"de.dfki.touchandwrite.streaming","type":"register","stream":"touchandwriteevents","utid":3}');
 			console.log("tuioJSON is ready");
+			var event	= document.createEvent('CustomEvent');
+			event.initCustomEvent('tuiojsonready', true, true, 1);
+			document.dispatchEvent(event);
 		}
 		
 		// define Callback handler for onMessage event
