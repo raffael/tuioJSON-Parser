@@ -108,6 +108,16 @@ function TWFixor(options) {
 		}
 	}
 	
+	/**
+	 * getParser
+	 * Getter for the parser Object
+	 * @param	-		-
+	 * @return	the tuioJSON Parser object
+	 */
+	this.getParser	= function() {
+		return tuioJSONParser;
+	}
+	
 
 /*  - - - - - - TOUCH - - - - - */
 
