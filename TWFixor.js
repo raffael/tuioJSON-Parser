@@ -100,6 +100,7 @@ function TWFixor(options) {
 				else fixGestureMessage(message);
 				break;
 			case 'pen':
+				console.log("penmessage:",message);
 				fixPenMessage(message);
 				break;
 			default:
