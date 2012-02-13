@@ -78,7 +78,6 @@ function TWFixor(options) {
 	 * @return	-
 	 */
 	this.fix = function(message) {
-				console.log(JSON.stringify(message));
 		/**
 		 * clear invalid messages
 		 */
