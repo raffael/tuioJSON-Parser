@@ -72,12 +72,12 @@ function TWFixor(options) {
 	
 	/**
 	 * @public 
-	 * fix()
-	 * Public method provided by this library to fix T&W messages
+	 * parse()
+	 * Public method provided by this library to fix T&W messages and transmit them to the parser.
 	 * @param	msg		The decoded JSON message
 	 * @return	-
 	 */
-	this.fix = function(message) {
+	this.parse = function(message) {
 		/**
 		 * clear invalid messages
 		 */

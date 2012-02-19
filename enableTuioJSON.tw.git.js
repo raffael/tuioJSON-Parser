@@ -41,7 +41,7 @@ function injectingTuioComplete(){
 			// extract JSON data from message
 			var data = JSON.parse(msg.data);
 			// and pass it to the TuioJSON parser
-			window.parserProxy.fix(data);
+			window.parserProxy.parse(data);
 		}
 	}
 }
