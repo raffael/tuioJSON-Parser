@@ -90,7 +90,7 @@ function TWFixor(options) {
 		 */
 		delete message.streamID;
 		
-		console.log(message);
+		if (!(message.type=='pen' && message.state=='move')) console.log(message);
 		switch(message.type) {
 			case 'touch':
 				if (options.doBuffering) bufferTouchMessage(message);
