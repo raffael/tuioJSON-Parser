@@ -90,7 +90,6 @@ function TWFixor(options) {
 		 */
 		delete message.streamID;
 		
-		if (!(message.type=='pen' && message.state=='move')) console.log(message);
 		switch(message.type) {
 			case 'touch':
 				if (options.doBuffering) bufferTouchMessage(message);
@@ -107,7 +106,6 @@ function TWFixor(options) {
 				fixShapeMessage(message);
 				break;
 			case 'handwriting':
-				alert('handwriting!');
 				fixHandwritingMessage(message);
 				break;
 			default:
