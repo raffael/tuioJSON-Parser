@@ -106,6 +106,7 @@ function TWFixor(options) {
 				fixShapeMessage(message);
 				break;
 			case 'handwriting':
+				alert('handwriting!');
 				fixHandwritingMessage(message);
 				break;
 			default:
