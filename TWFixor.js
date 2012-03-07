@@ -123,6 +123,26 @@ function TWFixor(options) {
 		return tuioJSONParser;
 	}
 	
+	/**
+	 * stop
+	 * Delegates a stop() method call to the tuioJSON Parser object to stop its operation
+	 * @param	-		-
+	 * @return	-
+	 */
+	this.stop		= function() {
+		tuioJSONParser.stop();
+	}
+	
+	/**
+	 * continue
+	 * Delegates a continue() method call to the tuioJSON Parser object to continue its processing operation
+	 * @param	-		-
+	 * @return	-
+	 */
+	this.continue	= function() {
+		tuioJSONParser.continue;
+	}
+	
 
 /*  - - - - - - TOUCH - - - - - */
 
