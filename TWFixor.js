@@ -256,10 +256,6 @@ function TWFixor(options) {
 			}
 			
 			message.words = words;
-			console.log("Incoming HWR message:",message);
-			console.log("------");
-			alert('look at console');
-			
 		}
 		tuioJSONParser.parse(message);
 	}
