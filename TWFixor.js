@@ -106,6 +106,7 @@ function TWFixor(options) {
 		
 		switch(message.type) {
 			case 'touch':
+				console.log("#M#"+message.id+'##'+(new Date()/1)+'##TWF');
 				if (options.doBuffering) bufferTouchMessage(message);
 				else fixTouchMessage(message);
 				break;
