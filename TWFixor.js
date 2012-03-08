@@ -241,7 +241,6 @@ function TWFixor(options) {
 		message.type	= 'handwriting';
 		message.state	= 'result'
 		
-		console.log('fixing hw message',(function(){return message})());
 		// fix wrong nesting:
 		if (message.words[0]!=undefined && message.words[0].alternatives) message.words	= message.words[0].alternatives;
 		tuioJSONParser.parse(message);
