@@ -63,7 +63,7 @@ function TWFixor(options) {
 		mergeGestures: false,
 		tuioJSONParser: undefined,
 		gestureChangeEventDropRate: 5,
-		touchMoveEventDropRate: 4,
+		touchMoveEventDropRate: 1,
 		doBuffering:	true
 	},options);
 	
@@ -174,7 +174,7 @@ function TWFixor(options) {
 	 */
 	var touchTimeouts = {};
 	
-	var dropper = {};
+	var touchMoveDropCounter = {};
 	
 	function bufferTouchMessage(message) {		
 		switch (message.state) {
@@ -188,9 +188,9 @@ function TWFixor(options) {
 				break;
 			case 'move':
 				if (options.touchMoveEventDropRate>1) {
-					if (dropper[message.id]==undefined) dropper[message.id] = 0;
-					else dropper[message.id] = (dropper[message.id]+1) % options.touchMoveEventDropRate;
-					if (dropper[message.id]==0) tuioJSONParser.parse(message);
+					if (touchMoveDropCounter[message.id]==undefined) touchMoveDropCounter[message.id] = 0;
+					else touchMoveDropCounter[message.id] = (touchMoveDropCounter[message.id]+1) % options.touchMoveEventDropRate;
+					if (touchMoveDropCounter[message.id]==0) tuioJSONParser.parse(message);
 				} else {
 					tuioJSONParser.parse(message);
 				}
