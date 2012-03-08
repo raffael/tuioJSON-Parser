@@ -39,6 +39,9 @@ function injectingTuioComplete(){
 		// define Callback handler for onMessage event
 		socket.onmessage = function(msg){
 			// extract JSON data from message
+			var pos	= msg.indexOf('"id"')+5;
+			var len = msg.substr(pos).indexOf(',');
+			var id = msg.substr( pos, len);
 			console.log("#M#"+id+'##'+(new Date()/1)+'##MSG');
 			var data = JSON.parse(msg.data);
 			// and pass it to the TuioJSON parser
