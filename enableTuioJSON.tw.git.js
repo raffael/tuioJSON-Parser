@@ -38,10 +38,6 @@ function injectingTuioComplete(){
 		
 		// define Callback handler for onMessage event
 		socket.onmessage = function(msg){
-			if (msg.data.indexOf('handwriting', 0)!=-1) {
-				console.log(msg.data);
-				alert('inc');
-			}
 			// extract JSON data from message
 			var data = JSON.parse(msg.data);
 			// and pass it to the TuioJSON parser
