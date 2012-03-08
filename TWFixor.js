@@ -63,13 +63,26 @@ function TWFixor(options) {
 		mergeGestures: false,
 		tuioJSONParser: undefined,
 		gestureChangeEventDropRate: 5,
-		touchMoveEventDropRate: 20,
+		touchMoveEventDropRate: 4,
 		doBuffering:	true
 	},options);
 	
 	if (!options.tuioJSONParser) throw "No tuioJSONParser object found";
 	
 	var tuioJSONParser	= options.tuioJSONParser;
+	
+	/**
+	 * @public setOptions
+	 * Resets the options object by overwriting the current options attributes with
+	 * the one specified.
+	 * 
+	 * @param	newOptions		The new options object extends the old one.
+	 * @return	-
+	 */
+	this.setOptions = function(newOptions) {
+		log("Resetting twFixor options.");
+		options	= extend(options,newOptions);
+	}
 	
 	/**
 	 * @public 
