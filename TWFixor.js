@@ -238,12 +238,29 @@ function TWFixor(options) {
 /*  - - - - - - HANDWRITING - - - - - - -*/
 
 	function fixHandwritingMessage(message) {
+		console.log("Incoming HWR message:",message);
+		console.log("------");
+		alert('look at console');
+		
 		message.type	= 'handwriting';
 		message.state	= 'result'
 		
 		console.log('fixing hw message',(function(){return message})());
 		// fix wrong nesting:
 		if (message.words[0]!=undefined && message.words[0].alternatives) message.words	= message.words[0].alternatives;
+		
+		if (message.words[0]!=undefined && message.words[0].keyIterator!=undefined) {
+			var words = [];
+			
+			for(var i in message.words) {
+				words.push({
+					word:		message.words[i].map.,
+					confidence:	
+				});
+			}
+			
+			message.words = words;
+		}
 		tuioJSONParser.parse(message);
 	}
 	
