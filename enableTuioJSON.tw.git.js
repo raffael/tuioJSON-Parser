@@ -51,7 +51,6 @@ function injectingTuioComplete(){
 		
 		window.unload(function(){
 			var unregisterMessage = '{"ns":"de.dfki.touchandwrite.streaming","type":"unregister","stream":"touchandwriteevents"}';
-			alert('unregister');
 			socket.send(unregisterMessage);
 		});
 	}
