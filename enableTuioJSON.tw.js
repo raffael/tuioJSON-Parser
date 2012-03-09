@@ -44,10 +44,10 @@ function injectingTuioComplete(){
 			window.parserProxy.parse(data);
 		}
 		
-		window.unload(function(){
+		document.body.addEventListener('unload',function(){
 			var unregisterMessage = '{"ns":"de.dfki.touchandwrite.streaming","type":"unregister","stream":"touchandwriteevents"}';
 			socket.send(unregisterMessage);
-		});
+		},true);
 	}
 }
 
