@@ -258,13 +258,12 @@ function TWFixor(options) {
 		
 		message.type	= 'shape';
 		message.state	= 'result';
-		console.log("FIXING THIS MESSAGE",message);
+
 		if (message.shapes[0]!=undefined && message.shapes[0].keyIterator!=undefined) {
 			var shapes = [];
 			
 			for(var i in message.shapes) {
 				shapes.push(message.shapes[i].map);
-				console.log("- - - - -PUSHING INTO SHAPES ",message.shapes[i].map);
 			}
 			
 			message.shapes = shapes;
