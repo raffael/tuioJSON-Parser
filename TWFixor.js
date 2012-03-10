@@ -258,7 +258,7 @@ function TWFixor(options) {
 		
 		message.type	= 'shape';
 		message.state	= 'result';
-		
+		console.log("FIXING THIS MESSAGE",message);
 		if (message.shapes[0]!=undefined && message.shapes[0].keyIterator!=undefined) {
 			var shapes = [];
 			
