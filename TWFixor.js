@@ -264,6 +264,7 @@ function TWFixor(options) {
 			
 			for(var i in message.shapes) {
 				shapes.push(message.shapes[i].map);
+				console.log("- - - - -PUSHING INTO SHAPES ",message.shapes[i].map);
 			}
 			
 			message.shapes = shapes;
