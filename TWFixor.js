@@ -255,6 +255,20 @@ function TWFixor(options) {
 /*  - - - - - - SHAPE - - - - - - -*/
 
 	function fixShapeMessage(message) {
+		
+		message.type	= 'shape';
+		message.state	= 'result';
+		
+		if (message.shapes[0]!=undefined && message.shapes[0].keyIterator!=undefined) {
+			var shapes = [];
+			
+			for(var i in message.shapes) {
+				shapes.push(message.shapes[i].map);
+			}
+			
+			message.shapes = shapes;
+		}
+	
 		tuioJSONParser.parse(message);
 	}
 	
@@ -263,7 +277,7 @@ function TWFixor(options) {
 	function fixHandwritingMessage(message) {
 		
 		message.type	= 'handwriting';
-		message.state	= 'result'
+		message.state	= 'result';
 		
 		// fix wrong nesting:
 		if (message.words[0]!=undefined && message.words[0].alternatives) message.words	= message.words[0].alternatives;
