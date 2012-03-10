@@ -255,6 +255,7 @@ function TWFixor(options) {
 /*  - - - - - - SHAPE - - - - - - -*/
 
 	function fixShapeMessage(message) {
+		console.log("SHAPE MESSAGE:",message);
 		tuioJSONParser.parse(message);
 	}
 	
