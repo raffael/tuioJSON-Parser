@@ -44,8 +44,8 @@ function injectingTuioComplete(){
 			var pos	= msg.data.indexOf('"id"')+5;
 			var len = msg.data.substr(pos).indexOf(',');
 			var id = msg.data.substr( pos, len);
-			var dot = msg.data.indexOf('move')!=-1;
-			if (dot) perflog("#M#"+id+'##'+(new Date()/1)+'##MSG');
+			var dot = msg.data.indexOf('start')!=-1;
+			if (dot) perflog("#S#"+id+'##'+(new Date()/1)+'##MSG');
 			
 			var data = JSON.parse(msg.data);
 			// and pass it to the TuioJSON parser
