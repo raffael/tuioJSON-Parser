@@ -224,6 +224,8 @@ function TWFixor(options) {
 	var lastPenState	= {};
 	var penTimeouts		= {};
 	function fixPenMessage(message) {
+	
+		// Pen message do not have an identifier yet, so set it to 1
 		message.id		= 1;
 		
 		switch(lastPenState[message.id]) {
@@ -233,6 +235,7 @@ function TWFixor(options) {
 				message.state	= 'move';
 				break;
 			case 'end':
+				// currently not the case
 				break;
 			default:
 				message.state	= 'start';
@@ -243,6 +246,7 @@ function TWFixor(options) {
 		resetPenTimeout(message);
 	}
 	
+	// reset means: move the deletion forward in time by another 50 ms interval
 	function resetPenTimeout(message) {
 		if (penTimeouts[message.id]) clearTimeout(penTimeouts[message.id]);
 		penTimeouts[message.id]			= setTimeout(function(){
