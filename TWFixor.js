@@ -226,6 +226,7 @@ function TWFixor(options) {
 	function fixPenMessage(message) {
 		message.id		= 1;
 		
+		console.log("fixing pen message",(function(){return message;})());
 		switch(lastPenState[message.id]) {
 			case 'start':
 				message.state	= 'move';
