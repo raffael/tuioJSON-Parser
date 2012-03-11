@@ -59,6 +59,7 @@ function TWFixor(options) {
 		/* if set to true, the script will output a lot of information to the console */
 		verboseMode: false,
 		reanimationTimeOut: 20,
+		penEndFireTimeOut: 200,
 		mergingTimeout: 20,
 		mergeGestures: false,
 		tuioJSONParser: undefined,
@@ -252,7 +253,7 @@ function TWFixor(options) {
 			message.state				= 'end';
 			lastPenState[message.id]	= null; 
 			tuioJSONParser.parse(message);
-		}, 50);
+		}, options.penEndFireTimeOut);
 	}
 
 /*  - - - - - - SHAPE - - - - - - -*/
