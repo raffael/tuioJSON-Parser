@@ -40,12 +40,11 @@ function injectingTuioComplete(){
 		socket.onmessage = function(msg){
 			// extract JSON data from message
 			
-			console.log(msg.data);
-			
+	
 			var pos	= msg.data.indexOf('"id"')+5;
 			var len = msg.data.substr(pos).indexOf(',');
 			var id = msg.data.substr( pos, len);
-			var dot = dot && msg.data.indexOf('move')!=-1;
+			var dot = msg.data.indexOf('move')!=-1;
 			if (dot) perflog("#M#"+id+'##'+(new Date()/1)+'##MSG');
 			
 			var data = JSON.parse(msg.data);
