@@ -225,7 +225,6 @@ function TWFixor(options) {
 	var lastPenState	= {};
 	var penTimeouts		= {};
 	function fixPenMessage(message) {
-	console.log("fix pen message",message);
 		// Pen message do not have an identifier yet, so set it to 1
 		message.id		= 1;
 		
@@ -242,7 +241,8 @@ function TWFixor(options) {
 				break;				
 		}
 		lastPenState[message.id]	= message.state;
-		tuioJSONParser.parse(message);
+		// do not delegate the 'end' state, since it's triggered via the timeout function
+		if (message.state!='end') tuioJSONParser.parse(message);
 		resetPenTimeout(message);
 	}
 	
