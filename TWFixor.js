@@ -448,7 +448,7 @@ function TWFixor(options) {
 		 * corresponding Touch events that, together, trigger the gesture. The only information we get, is the pivotX/Y
 		 * data of the rotate gesture. That's why we assume this as the gesture's position.
 		 * 
-		 * Next bad thing is that the rotate gesture sends its pivot information from its first change event up. The start state
+		 * Next misbehaviour is that the rotate gesture sends its pivot information from its first change event up. The start state
 		 * only has the pivotX/Y set to 0.
 		 * That's why we have to wait for a rotate:change event to come in and get its position information before triggering
 		 * any of the merged messages.
@@ -510,7 +510,6 @@ function TWFixor(options) {
 				bufferedMessage					= null;
 				lastScaleGestureMessage			= null;
 				lastRotateGestureMessage		= null;
-				console.log("reset");
 			}
 			
 		} else {
