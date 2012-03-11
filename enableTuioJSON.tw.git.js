@@ -44,7 +44,7 @@ function injectingTuioComplete(){
 			var pos	= msg.data.indexOf('"id"')+5;
 			var len = msg.data.substr(pos).indexOf(',');
 			var id = msg.data.substr( pos, len);
-			var dot = msg.data.indexOf('start')!=-1;
+			var dot = msg.data.indexOf('start')!=-1 && msg.data.indexOf('gesture')==0;
 			if (dot) perflog("#S#"+id+'##'+(new Date()/1)+'##MSG');
 			
 			var data = JSON.parse(msg.data);
