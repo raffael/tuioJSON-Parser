@@ -224,13 +224,12 @@ function TWFixor(options) {
 	var lastPenState	= {};
 	var penTimeouts		= {};
 	function fixPenMessage(message) {
-	
+	console.log("fix pen message",message);
 		// Pen message do not have an identifier yet, so set it to 1
 		message.id		= 1;
 		
 		switch(lastPenState[message.id]) {
 			case 'start':
-				message.state	= 'move';
 			case 'move':
 				message.state	= 'move';
 				break;
