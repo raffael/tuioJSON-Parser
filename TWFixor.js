@@ -59,12 +59,17 @@ function TWFixor(options) {
 		/* if set to true, the script will output a lot of information to the console */
 		verboseMode: false,
 		reanimationTimeOut: 20,
+		/* milliseconds until penend will be fired after last pen message, since T&W does not provide state information */
 		penEndFireTimeOut: 200,
 		mergingTimeout: 20,
+		/* if set to true, scale and rotation gestures will be merged into gesturechange events and not fired individually */
 		mergeGestures: false,
+		/* the actual tuioJSON parser object */
 		tuioJSONParser: undefined,
+		/* Every x-th message will be used for parsing */
 		gestureChangeEventDropRate: 5,
 		touchMoveEventDropRate: 1,
+		/* if set to true, move-move-end-start-move sequences will be cleaned from end-start sequences */
 		doBuffering:	true
 	},options);
 	
@@ -81,8 +86,8 @@ function TWFixor(options) {
 	 * @return	-
 	 */
 	this.setOptions = function(newOptions) {
-		log("Resetting twFixor options.");
 		options	= extend(options,newOptions);
+		console.log("Resetting twFixor options.");
 	}
 	
 	/**
