@@ -40,6 +40,7 @@ function injectingTuioComplete(){
 		socket.onmessage = function(msg){
 			// extract JSON data from message
 			
+			console.log(msg.data);
 			
 			var pos	= msg.data.indexOf('"id"')+5;
 			var len = msg.data.substr(pos).indexOf(',');
