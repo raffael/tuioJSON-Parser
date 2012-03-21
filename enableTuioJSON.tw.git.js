@@ -40,7 +40,8 @@ function injectingTuioComplete(){
 		socket.onmessage = function(msg){
 			// extract JSON data from message
 			
-			var pos	= msg.data.indexOf('"type":"start"')
+			var pos	= msg.data.indexOf('"state":"start"');
+			pos = (pos!=-1) && (msg.data.indexOf('"type":"touch"')!=-1);
 			if (pos) console.log("START IN MESSAGE FOUND");
 			
 			var data = JSON.parse(msg.data);
