@@ -38,8 +38,11 @@ function injectingTuioComplete(){
 		
 		// define Callback handler for onMessage event
 		socket.onmessage = function(msg){
+			var pos  = msg.data.indexOf('"id')+5;
+			
 			// extract JSON data from message
 			var data = JSON.parse(msg.data);
+			
 			// and pass it to the TuioJSON parser
 			window.parserProxy.parse(data);
 		}

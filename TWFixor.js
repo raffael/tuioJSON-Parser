@@ -70,7 +70,7 @@ function TWFixor(options) {
 		gestureChangeEventDropRate: 5,
 		touchMoveEventDropRate: 1,
 		/* if set to true, move-move-end-start-move sequences will be cleaned from end-start sequences */
-		doBuffering:	true
+		doBuffering:	false
 	},options);
 	
 	if (!options.tuioJSONParser) throw "No tuioJSONParser object found";
@@ -215,6 +215,7 @@ function TWFixor(options) {
 	}
 	
 	function fixTouchMessage(message){
+		if (message.state=='start') ('START');
 		tuioJSONParser.parse(message);
 	}
 	
