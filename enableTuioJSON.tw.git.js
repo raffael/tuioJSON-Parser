@@ -43,6 +43,7 @@ function injectingTuioComplete(){
 			var pos	= msg.data.indexOf('"state":"start"');
 			pos = (pos!=-1) && (msg.data.indexOf('"type":"touch"')!=-1);
 			if (pos) console.log("START IN MESSAGE FOUND");
+			if (msg.data.indexOf('touch')!=-1) console.log(msg.data);
 			
 			var data = JSON.parse(msg.data);
 			// and pass it to the TuioJSON parser
